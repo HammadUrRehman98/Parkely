@@ -26,6 +26,7 @@ from app.schemas.auth import (
     VerifyEmailOtpResponse,
 )
 from app.services.email_service import (
+    EmailDeliveryError,
     build_email_otp_html,
     build_email_otp_text,
     build_password_reset_email_html,
@@ -64,7 +65,14 @@ def _send_otp_email(user: User, otp: str) -> bool:
     subject = "Verify your Parkely account"
     html = build_email_otp_html(user.name, otp)
     text = build_email_otp_text(user.name, otp)
-    send_resend_email(user.email, subject, html, text)
+    send_resend_email(
+        api_key=settings.resend_api_key,
+        from_email=settings.resend_from_email,
+        to_email=user.email,
+        subject=subject,
+        html=html,
+        text=text,
+    )
     return True
 
 
@@ -73,7 +81,14 @@ def _send_password_reset_email(user: User, token: str) -> None:
     subject = "Reset your Parkely password"
     html = build_password_reset_email_html(user.name, reset_url)
     text = build_password_reset_email_text(user.name, reset_url)
-    send_resend_email(user.email, subject, html, text)
+    send_resend_email(
+        api_key=settings.resend_api_key,
+        from_email=settings.resend_from_email,
+        to_email=user.email,
+        subject=subject,
+        html=html,
+        text=text,
+    )
 
 
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
@@ -105,7 +120,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> Registe
         db.add(user)
         db.commit()
         db.refresh(user)
-    except RuntimeError:
+    except EmailDeliveryError:
         otp_sent = False
         if settings.frontend_app_url.startswith("http://localhost") or "127.0.0.1" in settings.frontend_app_url:
             otp_preview = otp
@@ -193,7 +208,7 @@ def resend_email_otp(payload: ResendEmailOtpRequest, db: Session = Depends(get_d
         db.add(user)
         db.commit()
         db.refresh(user)
-    except RuntimeError as exc:
+    except EmailDeliveryError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Verification email could not be sent: {exc}",
@@ -225,7 +240,7 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
 
     try:
         _send_password_reset_email(user, token)
-    except RuntimeError:
+    except EmailDeliveryError:
         return ForgotPasswordResponse(message="If an account exists for that email, a reset link has been sent.")
 
     return ForgotPasswordResponse(message="If an account exists for that email, a reset link has been sent.")

@@ -3,12 +3,18 @@ from __future__ import annotations
 import json
 import logging
 from html import escape
+from dataclasses import dataclass
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class EmailDeliveryError(Exception):
+    message: str
 
 
 def build_email_otp_html(name: str, otp: str) -> str:
@@ -93,36 +99,63 @@ def build_password_reset_email_text(name: str, reset_url: str) -> str:
     )
 
 
-def send_resend_email(to_email: str, subject: str, html: str, text: str) -> None:
-    if not settings.resend_api_key or not settings.resend_from_email:
-        raise RuntimeError("Resend API key or from email is not configured")
+def send_resend_email(
+    *,
+    api_key: str | None = None,
+    from_email: str | None = None,
+    to_email: str,
+    subject: str,
+    html: str,
+    text: str | None = None,
+) -> dict:
+    resolved_api_key = api_key or settings.resend_api_key
+    resolved_from_email = from_email or settings.resend_from_email
+    if not resolved_api_key:
+        raise EmailDeliveryError("Resend API key is not configured")
+    if not resolved_from_email:
+        raise EmailDeliveryError("Resend from email is not configured")
 
     payload = json.dumps(
         {
-            "from": settings.resend_from_email,
+            "from": resolved_from_email,
             "to": [to_email],
             "subject": subject,
             "html": html,
-            "text": text,
+            **({"text": text} if text else {}),
         }
     ).encode("utf-8")
 
-    request = Request(
+    req = Request(
         "https://api.resend.com/emails",
         data=payload,
         headers={
-            "Authorization": f"Bearer {settings.resend_api_key}",
+            "Authorization": f"Bearer {resolved_api_key}",
             "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "parkely-backend/1.0",
         },
         method="POST",
     )
 
     try:
-        with urlopen(request, timeout=15) as response:
-            response_body = response.read().decode("utf-8")
-            logger.info("Resend email response for %s: %s", to_email, response_body)
+        with urlopen(req, timeout=15) as response:
+            body = response.read().decode("utf-8")
+            logger.info("Resend email response for %s: %s", to_email, body)
+            return json.loads(body) if body else {}
     except HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="ignore") if hasattr(exc, "read") else str(exc)
-        raise RuntimeError(f"Resend request failed: {detail}") from exc
+        raw = exc.read().decode("utf-8", errors="ignore")
+        try:
+            details = json.loads(raw)
+        except Exception:
+            details = raw
+        logger.error(
+            "Resend HTTP error %s while sending email from %s to %s: %s",
+            exc.code,
+            resolved_from_email,
+            to_email,
+            details,
+        )
+        raise EmailDeliveryError(f"Failed to send email via Resend: {details}") from exc
     except URLError as exc:
-        raise RuntimeError(f"Resend request failed: {exc.reason}") from exc
+        logger.exception("Unexpected error while sending email from %s to %s via Resend", resolved_from_email, to_email)
+        raise EmailDeliveryError(f"Failed to send email via Resend: {exc.reason}") from exc
