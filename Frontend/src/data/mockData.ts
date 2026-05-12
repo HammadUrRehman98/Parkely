@@ -2,8 +2,8 @@ import { ParkingZone, Booking, Notification, AnalyticsData, User } from '@/types
 
 export const mockUser: User = {
   id: 'u1',
-  name: 'John Doe',
-  email: 'john@example.com',
+  name: 'Name',
+  email: 'name@example.com',
   role: 'user',
   vehicleNumber: 'ABC-1234',
   vehicleType: 'Sedan',
