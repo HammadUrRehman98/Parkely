@@ -1,109 +1,191 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Car, Map, CalendarCheck, Shield, Zap, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowRight, ShieldCheck, Sparkles, Timer } from 'lucide-react';
 
-const Landing = () => {
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Nav */}
-      <nav className="border-b bg-card/80 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Car className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">ParkSmart</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/register">Get Started</Link>
-            </Button>
-          </div>
+const Landing = () => (
+  <div className="min-h-screen bg-background">
+    {/* Top bar */}
+    <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
+      <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="font-semibold tracking-tight">Parkely</span>
+          <Badge variant="secondary" className="hidden sm:inline-flex">Live availability</Badge>
         </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="py-24 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">
-            Find & Book Parking
-            <span className="text-primary block mt-2">In Seconds</span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Real-time parking availability, interactive maps, and instant booking. 
-            No more circling the block — park smarter with ParkSmart.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Button size="lg" className="text-base px-8" asChild>
-              <Link to="/login">Find Parking</Link>
-            </Button>
-            <Button size="lg" variant="outline" className="text-base px-8" asChild>
-              <Link to="/login">Admin Login</Link>
-            </Button>
-          </div>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" asChild>
+            <Link to="/login">Login</Link>
+          </Button>
+          <Button asChild>
+            <Link to="/register">Create account</Link>
+          </Button>
         </div>
-      </section>
+      </div>
+    </header>
 
-      {/* Features */}
-      <section className="py-20 px-6 bg-muted/50">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Why ParkSmart?</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { icon: Map, title: 'Interactive Map', desc: 'View all available parking zones on a live map with real-time slot availability.' },
-              { icon: CalendarCheck, title: 'Easy Booking', desc: 'Book your parking spot in just a few clicks. Choose zone, time, and slot instantly.' },
-              { icon: Shield, title: 'Secure & Reliable', desc: 'JWT-based authentication ensures your account and bookings are always protected.' },
-            ].map((f) => (
-              <Card key={f.title} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-8 text-center">
-                  <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
-                    <f.icon className="h-7 w-7 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
-                  <p className="text-muted-foreground text-sm">{f.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+    {/* Hero */}
+    <section className="relative overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0">
+        <div
+          className="absolute -top-24 -left-24 h-96 w-96 rounded-full blur-3xl opacity-30 animate-parkely-float"
+          style={{ background: 'radial-gradient(circle at 30% 30%, hsl(225 73% 57% / .35), transparent 60%)' }}
+        />
+        <div
+          className="absolute -bottom-24 -right-24 h-[28rem] w-[28rem] rounded-full blur-3xl opacity-25 animate-parkely-float-slow"
+          style={{ background: 'radial-gradient(circle at 60% 40%, hsl(142 71% 45% / .30), transparent 60%)' }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.12] animate-parkely-drift"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, hsl(225 73% 57% / .35), transparent 55%), linear-gradient(to left, hsl(142 71% 45% / .25), transparent 55%)',
+            backgroundSize: '120% 100%, 120% 100%',
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.10]"
+          style={{
+            backgroundImage:
+              'linear-gradient(hsl(220 13% 91% / .75) 1px, transparent 1px), linear-gradient(90deg, hsl(220 13% 91% / .75) 1px, transparent 1px)',
+            backgroundSize: '56px 56px',
+            maskImage: 'radial-gradient(ellipse at 40% 35%, #000 45%, transparent 72%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at 40% 35%, #000 45%, transparent 72%)',
+          }}
+        />
+      </div>
 
-      {/* How it works */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { step: '1', icon: Map, title: 'Find a Zone', desc: 'Browse the interactive map to find nearby parking zones with available spots.' },
-              { step: '2', icon: Clock, title: 'Pick Date & Slot', desc: 'Select your preferred date, time, and specific parking slot from the visual grid.' },
-              { step: '3', icon: CalendarCheck, title: 'Book & Go', desc: 'Confirm your booking instantly and navigate to your reserved parking spot.' },
-            ].map((s) => (
-              <div key={s.step} className="text-center">
-                <div className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                  {s.step}
+      <div className="relative mx-auto max-w-7xl px-6 pt-16 pb-14">
+        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
+          <div className="space-y-6">
+            <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+              Park with confidence.
+              <span className="block text-muted-foreground font-medium mt-3">
+                See what’s open, reserve a spot, and arrive on time.
+              </span>
+            </h1>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button size="lg" className="h-12 px-6" asChild>
+                <Link to="/login">
+                  Find parking <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="h-12 px-6" asChild>
+                <Link to="/login">Admin access</Link>
+              </Button>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-4 pt-4">
+              {[
+                { icon: Timer, title: 'Fast booking', desc: 'Pick time and slot in seconds.' },
+                { icon: ShieldCheck, title: 'Secure', desc: 'Verified accounts and protected sessions.' },
+                { icon: Sparkles, title: 'Live status', desc: 'Slots update as they change.' },
+              ].map((item) => (
+                <div key={item.title} className="rounded-xl border bg-card/70 backdrop-blur p-4">
+                  <item.icon className="h-5 w-5 text-primary" />
+                  <div className="mt-3 text-sm font-medium">{item.title}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{item.desc}</div>
                 </div>
-                <h3 className="font-semibold text-lg mb-2">{s.title}</h3>
-                <p className="text-muted-foreground text-sm">{s.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="border-t py-8 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Car className="h-4 w-4" />
-            <span>ParkSmart © 2026</span>
+          {/* Showcase panel */}
+          <div className="relative">
+            <div className="rounded-2xl border bg-card shadow-xl overflow-hidden">
+              <div className="p-4 border-b flex items-center justify-between">
+                <div className="text-sm font-medium">Live Map</div>
+                <div className="text-xs text-muted-foreground">Zones • Slots • Entry/Exit</div>
+              </div>
+              <div className="relative p-5">
+                {/* Stylized “map” */}
+                <div className="relative h-[320px] rounded-xl overflow-hidden border bg-gradient-to-b from-muted/50 to-background">
+                  <div className="absolute inset-0 opacity-[0.14]" style={{
+                    backgroundImage:
+                      'linear-gradient(hsl(220 13% 91% / .9) 1px, transparent 1px), linear-gradient(90deg, hsl(220 13% 91% / .9) 1px, transparent 1px)',
+                    backgroundSize: '28px 28px',
+                  }} />
+                  {/* Scanning highlight */}
+                  <div className="absolute top-10 left-0 h-1 w-1/2 bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-parkely-scan" />
+
+                  {/* Pins */}
+                  {[
+                    { top: 72, left: 58, color: 'hsl(225 73% 57%)', delay: '0ms' },
+                    { top: 164, left: 180, color: 'hsl(142 71% 45%)', delay: '300ms' },
+                    { top: 118, left: 264, color: 'hsl(38 92% 50%)', delay: '600ms' },
+                  ].map((p, i) => (
+                    <div
+                      key={i}
+                      className="absolute animate-parkely-float"
+                      style={{ top: p.top, left: p.left, animationDelay: p.delay }}
+                    >
+                      <div className="relative">
+                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: p.color }} />
+                        <div className="absolute -inset-3 rounded-full opacity-40" style={{ background: `radial-gradient(circle, ${p.color}55, transparent 60%)` }} />
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Route line */}
+                  <svg className="absolute inset-0" viewBox="0 0 420 320" fill="none">
+                    <path
+                      d="M70 92 C 150 70, 190 120, 230 150 S 330 220, 360 210"
+                      stroke="hsl(225 73% 57% / .45)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeDasharray="6 10"
+                    />
+                  </svg>
+
+                  {/* Bottom status strip */}
+                  <div className="absolute bottom-4 left-4 right-4 rounded-xl border bg-background/80 backdrop-blur p-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Nearest zone</span>
+                      <span className="font-medium">12 slots free</span>
+                    </div>
+                    <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full w-[62%] bg-primary/70" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div className="rounded-xl border p-3">
+                    <div className="text-[11px] text-muted-foreground">Rate</div>
+                    <div className="mt-1 text-sm font-semibold">PKR / hour</div>
+                  </div>
+                  <div className="rounded-xl border p-3">
+                    <div className="text-[11px] text-muted-foreground">Status</div>
+                    <div className="mt-1 text-sm font-semibold">Available</div>
+                  </div>
+                  <div className="rounded-xl border p-3">
+                    <div className="text-[11px] text-muted-foreground">Hold</div>
+                    <div className="mt-1 text-sm font-semibold">Auto‑managed</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="hidden lg:block absolute -right-8 -top-8 h-24 w-24 rounded-2xl border bg-card shadow-lg rotate-6 animate-parkely-float-slow" />
           </div>
-          <span>Smart Web-Based Parking Management System</span>
         </div>
-      </footer>
-    </div>
-  );
-};
+      </div>
+    </section>
+
+    {/* Footer */}
+    <footer className="border-t">
+      <div className="mx-auto max-w-7xl px-6 py-10 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          <div className="font-medium text-foreground">Parkely</div>
+          <div className="mt-1">Parking management for teams and drivers.</div>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          © {new Date().getFullYear()} Parkely
+        </div>
+      </div>
+    </footer>
+  </div>
+);
 
 export default Landing;

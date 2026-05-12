@@ -215,54 +215,66 @@ const AdminZoneEditor = () => {
         </div>
 
         <div className="grid lg:grid-cols-[1fr_420px] gap-6">
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <CardTitle>Location</CardTitle>
-              <CardDescription>Click the map to place the zone, or drag the marker for exact placement.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ZoneLocationPickerMap
-                latitude={form.latitude}
-                longitude={form.longitude}
-                zoneSizeMeters={form.zoneSizeMeters}
-                polygon={form.polygon}
-                color={form.color}
-                onChange={(next) =>
-                  setForm({
-                    ...form,
-                    latitude: next.latitude,
-                    longitude: next.longitude,
-                    polygon: next.polygon,
-                  })}
-              />
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Latitude</Label>
-                  <Input
-                    type="number"
-                    step="0.0001"
-                    value={form.latitude}
-                    onChange={(e) => {
-                      const nextLat = Number(e.target.value);
-                      setForm({ ...form, latitude: nextLat, polygon: buildPolygon(nextLat, form.longitude, form.zoneSizeMeters) });
-                    }}
-                  />
+          <div className="space-y-6">
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <CardTitle>Location</CardTitle>
+                <CardDescription>Click the map to place the zone, or drag the marker for exact placement.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ZoneLocationPickerMap
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                  zoneSizeMeters={form.zoneSizeMeters}
+                  polygon={form.polygon}
+                  color={form.color}
+                  onChange={(next) =>
+                    setForm({
+                      ...form,
+                      latitude: next.latitude,
+                      longitude: next.longitude,
+                      polygon: next.polygon,
+                    })}
+                />
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Latitude</Label>
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      value={form.latitude}
+                      onChange={(e) => {
+                        const nextLat = Number(e.target.value);
+                        setForm({ ...form, latitude: nextLat, polygon: buildPolygon(nextLat, form.longitude, form.zoneSizeMeters) });
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Longitude</Label>
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      value={form.longitude}
+                      onChange={(e) => {
+                        const nextLng = Number(e.target.value);
+                        setForm({ ...form, longitude: nextLng, polygon: buildPolygon(form.latitude, nextLng, form.zoneSizeMeters) });
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Longitude</Label>
-                  <Input
-                    type="number"
-                    step="0.0001"
-                    value={form.longitude}
-                    onChange={(e) => {
-                      const nextLng = Number(e.target.value);
-                      setForm({ ...form, longitude: nextLng, polygon: buildPolygon(form.latitude, nextLng, form.zoneSizeMeters) });
-                    }}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Layout Preview</CardTitle>
+                <CardDescription>Quick preview of the slot layout users will see.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ParkingLayout slots={previewSlots} template={form.layoutTemplate} />
+              </CardContent>
+            </Card>
+          </div>
 
           <div className="space-y-6">
             <Card>
@@ -366,10 +378,6 @@ const AdminZoneEditor = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Layout Preview</Label>
-                  <ParkingLayout slots={previewSlots} template={form.layoutTemplate} compact />
-                </div>
               </CardContent>
             </Card>
           </div>

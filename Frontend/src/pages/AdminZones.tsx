@@ -11,6 +11,7 @@ import { Plus, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { ParkingLayout } from '@/components/ParkingLayout';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { formatPKR } from '@/lib/currency';
 
 const AdminZones = () => {
   const [zones, setZones] = useState<ParkingZone[]>([]);
@@ -98,7 +99,7 @@ const AdminZones = () => {
                       <TableCell className="text-muted-foreground text-sm">{zone.address}</TableCell>
                       <TableCell>{zone.capacity}</TableCell>
                       <TableCell><Badge variant="outline">{zone.availableSlots}</Badge></TableCell>
-                      <TableCell>${zone.pricePerHour}/hr</TableCell>
+                      <TableCell>{formatPKR(zone.pricePerHour)}/hr</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); navigate(`/admin/zones/${zone.id}/edit`); }}>
