@@ -20,24 +20,29 @@ def seed_admin_user() -> None:
     if not settings.admin_bootstrap_email or not settings.admin_bootstrap_password:
         return
 
+    if len(settings.admin_bootstrap_password.encode("utf-8")) > 72:
+        logger.warning(
+            "Skipped admin bootstrap because ADMIN_BOOTSTRAP_PASSWORD exceeds bcrypt's 72-byte limit"
+        )
+        return
+
     try:
         with SessionLocal() as db:
             existing = db.scalar(select(User).where(User.email == settings.admin_bootstrap_email.lower()))
             if existing is not None:
                 return
-
-        admin_user = User(
-            name=settings.admin_bootstrap_name,
-            email=settings.admin_bootstrap_email.lower(),
-            password_hash=get_password_hash(settings.admin_bootstrap_password),
-            role=UserRole.admin,
-            is_email_verified=True,
-        )
-        db.add(admin_user)
-        db.commit()
-        logger.info("Seeded bootstrap admin user: %s", settings.admin_bootstrap_email)
+            admin_user = User(
+                name=settings.admin_bootstrap_name,
+                email=settings.admin_bootstrap_email.lower(),
+                password_hash=get_password_hash(settings.admin_bootstrap_password),
+                role=UserRole.admin,
+                is_email_verified=True,
+            )
+            db.add(admin_user)
+            db.commit()
+            logger.info("Seeded bootstrap admin user: %s", settings.admin_bootstrap_email)
     except Exception as exc:  # pragma: no cover - startup safety
-        logger.warning("Skipped admin bootstrap because database is unavailable or not migrated: %s", exc)
+        logger.warning("Skipped admin bootstrap because the database is unavailable or not migrated: %s", exc)
 
 
 def create_app() -> FastAPI:

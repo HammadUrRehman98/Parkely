@@ -28,6 +28,8 @@ alembic upgrade head
 python -m app.db.init_db
 ```
 
+On Windows PowerShell, run the same command after activating your virtual environment.
+
 6. Start the API:
 
 ```bash
