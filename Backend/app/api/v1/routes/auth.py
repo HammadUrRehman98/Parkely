@@ -42,17 +42,21 @@ def _serialize_user(user: User) -> UserRead:
     return UserRead.model_validate(user, from_attributes=True)
 
 
-def _issue_otp_for_user(user: User, db: Session) -> tuple[str, datetime]:
+def _store_otp_for_user(user: User, db: Session, otp: str, expires_at: datetime, sent_at: datetime | None = None) -> None:
+    user.email_otp_hash = hash_otp(otp)
+    user.email_otp_expires_at = expires_at
+    user.email_otp_sent_at = sent_at
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+
+def _issue_otp_for_user(user: User, db: Session, mark_as_sent: bool = True) -> tuple[str, datetime]:
     otp = generate_email_otp()
     expires_at = otp_expires_at()
     now = datetime.now(timezone.utc)
 
-    user.email_otp_hash = hash_otp(otp)
-    user.email_otp_expires_at = expires_at
-    user.email_otp_sent_at = now
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    _store_otp_for_user(user, db, otp, expires_at, now if mark_as_sent else None)
     return otp, expires_at
 
 
@@ -92,11 +96,15 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> Registe
     db.commit()
     db.refresh(user)
 
-    otp, expires_at = _issue_otp_for_user(user, db)
+    otp, expires_at = _issue_otp_for_user(user, db, mark_as_sent=False)
     otp_sent = True
     otp_preview: str | None = None
     try:
         _send_otp_email(user, otp)
+        user.email_otp_sent_at = datetime.now(timezone.utc)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     except RuntimeError:
         otp_sent = False
         if settings.frontend_app_url.startswith("http://localhost") or "127.0.0.1" in settings.frontend_app_url:
@@ -178,9 +186,13 @@ def resend_email_otp(payload: ResendEmailOtpRequest, db: Session = Depends(get_d
                 detail=f"Please wait {wait_seconds} seconds before requesting another code",
             )
 
-    otp, expires_at = _issue_otp_for_user(user, db)
+    otp, expires_at = _issue_otp_for_user(user, db, mark_as_sent=False)
     try:
         _send_otp_email(user, otp)
+        user.email_otp_sent_at = datetime.now(timezone.utc)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     except RuntimeError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
