@@ -31,8 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       try {
-        const data = await request<{ user: User }>('/auth/me', { token });
-        setUser(data.user);
+        const currentUser = await request<User>('/auth/me', { token });
+        setUser(currentUser);
       } catch {
         localStorage.removeItem('parkely_token');
         setToken(null);
