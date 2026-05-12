@@ -176,7 +176,7 @@ def resend_email_otp(payload: ResendEmailOtpRequest, db: Session = Depends(get_d
     except RuntimeError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Verification email could not be sent. Please try again later.",
+            detail=f"Verification email could not be sent: {exc}",
         ) from exc
 
     return {
