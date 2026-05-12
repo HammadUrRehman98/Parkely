@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -176,18 +176,19 @@ async def update_zone(
     return _serialize_zone_detail(zone)
 
 
-@router.delete("/zones/{zone_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/zones/{zone_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 async def delete_zone(
     zone_id: str,
     db: Session = Depends(get_db),
     _: User = Depends(require_roles(UserRole.admin)),
-) -> None:
+) -> Response:
     zone = db.scalar(select(ParkingZone).where(ParkingZone.id == zone_id))
     if zone is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Parking zone not found")
     db.delete(zone)
     db.commit()
     await broadcast_event("parking.zone.deleted", {"zone_id": zone_id})
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.patch("/slots/{slot_id}", response_model=ParkingSlotRead)

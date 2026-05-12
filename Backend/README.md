@@ -22,7 +22,13 @@ pip install -r requirements.txt
 alembic upgrade head
 ```
 
-5. Start the API:
+5. Optional: create tables directly for a fresh local database:
+
+```bash
+python -m app.db.init_db
+```
+
+6. Start the API:
 
 ```bash
 uvicorn app.main:app --reload
