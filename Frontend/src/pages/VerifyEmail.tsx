@@ -45,6 +45,8 @@ const VerifyEmail = () => {
     }
   };
 
+  const prefilledOtp = new URLSearchParams(location.search).get('otp') || '';
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
@@ -60,7 +62,7 @@ const VerifyEmail = () => {
             </div>
             <div className="space-y-2">
               <Label>OTP</Label>
-              <InputOTP maxLength={6} value={otp} onChange={(value) => setOtp(value)}>
+              <InputOTP maxLength={6} value={otp || prefilledOtp} onChange={(value) => setOtp(value)}>
                 <InputOTPGroup>
                   <InputOTPSlot index={0} />
                   <InputOTPSlot index={1} />
@@ -75,6 +77,11 @@ const VerifyEmail = () => {
           <CardFooter className="flex flex-col gap-3">
             <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Verifying...' : 'Verify Email'}</Button>
             <Button type="button" variant="secondary" className="w-full" onClick={handleResend}>Resend Code</Button>
+            {prefilledOtp && (
+              <p className="text-sm text-muted-foreground text-center">
+                Your local verification code is prefilled from signup.
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               Back to <Link to="/login" className="text-primary hover:underline">Sign In</Link>
             </p>

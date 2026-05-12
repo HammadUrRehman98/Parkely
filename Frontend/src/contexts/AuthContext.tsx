@@ -7,7 +7,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string, role: UserRole) => Promise<{ requiresVerification: boolean; message: string }>;
-  register: (name: string, email: string, password: string, vehicleNumber: string) => Promise<{ requiresVerification: boolean; email: string; message: string }>;
+  register: (name: string, email: string, password: string, vehicleNumber: string) => Promise<{ requiresVerification: boolean; email: string; message: string; otpPreview?: string | null }>;
   verifyEmailOtp: (email: string, otp: string) => Promise<void>;
   resendEmailOtp: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -60,11 +60,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string, vehicleNumber: string) => {
-    const data = await request<{ message: string; otp_sent: boolean; user: User }>('/auth/register', {
+    const data = await request<{ message: string; otp_sent: boolean; otp_preview?: string | null; user: User }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify({ name, email, password, vehicle_number: vehicleNumber }),
     });
-    return { requiresVerification: true, email, message: data.message };
+    return { requiresVerification: true, email, message: data.message, otpPreview: data.otp_preview ?? null };
   };
 
   const verifyEmailOtp = async (email: string, otp: string) => {

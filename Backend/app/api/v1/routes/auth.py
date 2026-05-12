@@ -94,15 +94,23 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> Registe
 
     otp, expires_at = _issue_otp_for_user(user, db)
     otp_sent = True
+    otp_preview: str | None = None
     try:
         _send_otp_email(user, otp)
     except RuntimeError:
         otp_sent = False
+        if settings.frontend_app_url.startswith("http://localhost") or "127.0.0.1" in settings.frontend_app_url:
+            otp_preview = otp
 
     return RegisterResponse(
-        message="Account created. Please verify your email using the OTP sent to you.",
+        message=(
+            "Account created. Please verify your email using the OTP sent to you."
+            if otp_sent
+            else "Account created, but the verification email could not be sent."
+        ),
         otp_sent=otp_sent,
         otp_expires_at=expires_at,
+        otp_preview=otp_preview,
         user=_serialize_user(user),
     )
 

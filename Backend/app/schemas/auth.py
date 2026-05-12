@@ -39,6 +39,7 @@ class RegisterResponse(BaseModel):
     message: str
     otp_sent: bool
     otp_expires_at: datetime | None = None
+    otp_preview: str | None = None
     user: UserRead
 
 
