@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Map, CalendarCheck } from 'lucide-react';
+import { formatPKR } from '@/lib/currency';
 
 const BookingConfirmation = () => {
   const location = useLocation();
@@ -25,7 +26,7 @@ const BookingConfirmation = () => {
                 <div><span className="text-muted-foreground">Slot</span><p className="font-medium">{data.slotLabel}</p></div>
                 <div><span className="text-muted-foreground">Date</span><p className="font-medium">{data.date}</p></div>
                 <div><span className="text-muted-foreground">Time</span><p className="font-medium">{data.startTime} ({data.duration}h)</p></div>
-                <div><span className="text-muted-foreground">Total</span><p className="font-medium text-lg">${data.totalCost}</p></div>
+                <div><span className="text-muted-foreground">Total</span><p className="font-medium text-lg">{formatPKR(Number(data.totalCost))}</p></div>
               </div>
             )}
             <div className="flex gap-3">

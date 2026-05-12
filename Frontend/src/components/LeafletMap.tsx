@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { formatPKR } from '@/lib/currency';
 
 interface MapZone {
   id: string;
   name: string;
   address: string;
+  lat: number;
+  lng: number;
   polygon: [number, number][];
   color: string;
   availableSlots: number;
@@ -19,9 +22,10 @@ interface LeafletMapProps {
   zones: MapZone[];
   onZoneBook?: (zoneId: string) => void;
   className?: string;
+  fitToZones?: boolean;
 }
 
-export const LeafletMap = ({ center, zoom, zones, onZoneBook, className }: LeafletMapProps) => {
+export const LeafletMap = ({ center, zoom, zones, onZoneBook, className, fitToZones }: LeafletMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const zoneLayerRef = useRef<L.LayerGroup | null>(null);
@@ -172,40 +176,95 @@ export const LeafletMap = ({ center, zoom, zones, onZoneBook, className }: Leafl
     const layerGroup = L.layerGroup().addTo(mapInstance.current);
     zoneLayerRef.current = layerGroup;
 
+    const boundsPoints: L.LatLng[] = [];
+
     zones.forEach((zone) => {
-      if (zone.polygon.length === 0) return;
-      const polygon = L.polygon(zone.polygon, {
-        color: zone.color,
-        fillColor: zone.color,
-        fillOpacity: 0.3,
+      const zoneCenter = L.latLng(zone.lat, zone.lng);
+      boundsPoints.push(zoneCenter);
+
+      const availabilityPct = zone.capacity > 0 ? Math.round((zone.availableSlots / zone.capacity) * 100) : 0;
+      const badgeColor = availabilityPct >= 50 ? '#16a34a' : availabilityPct >= 20 ? '#f59e0b' : '#ef4444';
+      const formattedRate = formatPKR(zone.pricePerHour);
+
+      const marker = L.marker(zoneCenter, {
+        icon: L.divIcon({
+          className: '',
+          html: `
+            <div style="position:relative;width:30px;height:30px">
+              <div style="
+                display:flex;align-items:center;justify-content:center;
+                width:30px;height:30px;border-radius:999px;
+                background:${zone.color};
+                border:2px solid #ffffff;
+                box-shadow:0 4px 10px rgba(0,0,0,0.18);
+              "></div>
+              <div style="
+                position:absolute;transform:translate(-50%, -50%);
+                left:50%;top:50%;
+                min-width:22px;height:18px;padding:0 6px;border-radius:999px;
+                background:${badgeColor};color:#fff;font-size:11px;font-weight:700;
+                display:flex;align-items:center;justify-content:center;
+                box-shadow:0 2px 8px rgba(0,0,0,0.15);
+              ">${zone.availableSlots}</div>
+            </div>
+          `,
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
+        }),
+        keyboard: false,
       }).addTo(layerGroup);
 
       const popupContent = document.createElement('div');
-      popupContent.style.minWidth = '180px';
+      popupContent.style.minWidth = '200px';
       popupContent.innerHTML = `
         <h3 style="font-weight:bold;font-size:14px;margin:0 0 4px">${zone.name}</h3>
         <p style="font-size:12px;color:#666;margin:0 0 8px">${zone.address}</p>
-        <div style="font-size:12px;margin-bottom:8px">
-          <p style="margin:2px 0">Available: <strong>${zone.availableSlots}/${zone.capacity}</strong></p>
-          <p style="margin:2px 0">Price: <strong>$${zone.pricePerHour}/hr</strong></p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:12px;margin-bottom:10px">
+          <span style="padding:2px 8px;border-radius:999px;background:rgba(59,130,246,0.12);color:#1d4ed8">
+            ${formattedRate}/hr
+          </span>
+          <span style="padding:2px 8px;border-radius:999px;background:rgba(34,197,94,0.12);color:#15803d">
+            ${zone.availableSlots}/${zone.capacity} free
+          </span>
         </div>
       `;
 
-      const btn = document.createElement('button');
-      btn.textContent = 'Book Now';
-      btn.style.cssText = 'width:100%;background:#4361ee;color:white;font-size:12px;padding:6px;border:none;border-radius:6px;cursor:pointer;';
-      btn.onmouseenter = () => { btn.style.background = '#3651d4'; };
-      btn.onmouseleave = () => { btn.style.background = '#4361ee'; };
-      btn.onclick = () => onZoneBook?.(zone.id);
-      popupContent.appendChild(btn);
+      if (onZoneBook) {
+        const btn = document.createElement('button');
+        btn.textContent = 'Book Now';
+        btn.style.cssText = 'width:100%;background:#4361ee;color:white;font-size:12px;padding:8px;border:none;border-radius:8px;cursor:pointer;';
+        btn.onmouseenter = () => { btn.style.background = '#3651d4'; };
+        btn.onmouseleave = () => { btn.style.background = '#4361ee'; };
+        btn.onclick = () => onZoneBook(zone.id);
+        popupContent.appendChild(btn);
+      }
 
-      polygon.bindPopup(popupContent);
+      marker.bindPopup(popupContent);
+
+      if (zone.polygon.length) {
+        const polygon = L.polygon(zone.polygon, {
+          color: zone.color,
+          fillColor: zone.color,
+          fillOpacity: 0.22,
+          weight: 2,
+        }).addTo(layerGroup);
+        zone.polygon.forEach(([lat, lng]) => boundsPoints.push(L.latLng(lat, lng)));
+        polygon.on('click', () => {
+          marker.openPopup();
+        });
+      }
+
     });
+
+    if (fitToZones && boundsPoints.length) {
+      const bounds = L.latLngBounds(boundsPoints);
+      mapInstance.current.fitBounds(bounds.pad(0.12), { animate: false });
+    }
 
     return () => {
       layerGroup.remove();
     };
-  }, [zones, onZoneBook]);
+  }, [zones, onZoneBook, fitToZones]);
 
   return <div ref={mapRef} className={className} style={{ minHeight: '400px', height: '100%', width: '100%' }} />;
 };

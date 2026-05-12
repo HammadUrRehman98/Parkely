@@ -11,7 +11,7 @@ export interface User {
   avatar?: string;
 }
 
-export type SlotStatus = 'available' | 'booked' | 'occupied';
+export type SlotStatus = 'available' | 'booked' | 'occupied' | 'hold' | 'unavailable';
 
 export interface ParkingSlot {
   id: string;
@@ -28,6 +28,10 @@ export interface ParkingZone {
   address: string;
   lat: number;
   lng: number;
+  entranceLat?: number;
+  entranceLng?: number;
+  exitLat?: number;
+  exitLng?: number;
   capacity: number;
   availableSlots: number;
   pricePerHour: number;
@@ -53,6 +57,8 @@ export interface Booking {
   totalCost: number;
   status: BookingStatus;
   vehicleNumber: string;
+  arrivalConfirmedAt?: string;
+  holdUntil?: string;
   createdAt: string;
 }
 

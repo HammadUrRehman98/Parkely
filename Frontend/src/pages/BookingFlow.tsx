@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { ParkingLayout } from '@/components/ParkingLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatPKR } from '@/lib/currency';
 
 const BookingFlow = () => {
   const { zoneId } = useParams();
@@ -166,7 +167,7 @@ const BookingFlow = () => {
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                Rate: <strong>${zone.pricePerHour}/hr</strong> · Estimated: <strong>${totalCost}</strong>
+                Rate: <strong>{formatPKR(zone.pricePerHour)}/hr</strong> · Estimated: <strong>{formatPKR(totalCost)}</strong>
               </div>
               <Button className="w-full" onClick={() => setStep(2)} disabled={!date}>
                 Next <ArrowRight className="ml-2 h-4 w-4" />
@@ -212,7 +213,7 @@ const BookingFlow = () => {
                 <div><span className="text-muted-foreground">Date</span><p className="font-medium">{date ? format(date, 'PPP') : ''}</p></div>
                 <div><span className="text-muted-foreground">Time</span><p className="font-medium">{startTime} ({duration}h)</p></div>
                 <div><span className="text-muted-foreground">Vehicle</span><p className="font-medium">{user?.vehicleNumber || 'N/A'}</p></div>
-                <div><span className="text-muted-foreground">Total Cost</span><p className="font-medium text-lg">${totalCost}</p></div>
+                <div><span className="text-muted-foreground">Total Cost</span><p className="font-medium text-lg">{formatPKR(totalCost)}</p></div>
               </div>
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setStep(2)}>Back</Button>

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
 import { LeafletMap } from '@/components/LeafletMap';
 import { useToast } from '@/hooks/use-toast';
+import { formatPKR } from '@/lib/currency';
 
 const ParkingFinder = () => {
   const [search, setSearch] = useState('');
@@ -73,7 +74,7 @@ const ParkingFinder = () => {
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between mt-3">
-                      <span className="text-sm font-medium">${zone.pricePerHour}/hr</span>
+                      <span className="text-sm font-medium">{formatPKR(zone.pricePerHour)}/hr</span>
                       <Button size="sm" onClick={() => navigate(`/booking/${zone.id}`)}>
                         Book Now
                       </Button>

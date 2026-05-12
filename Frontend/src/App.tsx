@@ -19,6 +19,7 @@ import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminZones from "./pages/AdminZones";
+import AdminZoneEditor from "./pages/AdminZoneEditor";
 import AdminReports from "./pages/AdminReports";
 import NotFound from "./pages/NotFound";
 
@@ -47,6 +48,8 @@ const App = () => (
               <Route element={<RequireRole role="admin" />}>
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/zones" element={<AdminZones />} />
+                <Route path="/admin/zones/new" element={<AdminZoneEditor />} />
+                <Route path="/admin/zones/:zoneId/edit" element={<AdminZoneEditor />} />
                 <Route path="/admin/reports" element={<AdminReports />} />
               </Route>
             </Route>

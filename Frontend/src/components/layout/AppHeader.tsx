@@ -1,4 +1,4 @@
-import { Bell, Sun, Moon } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,6 @@ import { useToast } from '@/hooks/use-toast';
 
 export function AppHeader() {
   const { user } = useAuth();
-  const [dark, setDark] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { toast } = useToast();
 
@@ -35,11 +34,6 @@ export function AppHeader() {
   }, [user?.id]);
 
   const unread = notifications.filter((n) => !n.read).length;
-
-  const toggleTheme = () => {
-    setDark(!dark);
-    document.documentElement.classList.toggle('dark');
-  };
 
   const handleMarkRead = async (notificationId: string) => {
     try {
@@ -61,10 +55,6 @@ export function AppHeader() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={toggleTheme}>
-          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">

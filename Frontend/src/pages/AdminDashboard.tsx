@@ -8,6 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { ParkingSquare, Layers, TrendingUp, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { LeafletMap } from '@/components/LeafletMap';
+import { Button } from '@/components/ui/button';
+import { formatPKR } from '@/lib/currency';
 
 const AdminDashboard = () => {
   const [zones, setZones] = useState<ParkingZone[]>([]);
@@ -63,6 +66,41 @@ const AdminDashboard = () => {
     return { totalZones, totalSlots, occupancyRate, totalRevenue, dailyOccupancy, peakHours };
   }, [zones, bookings]);
 
+  const mapCenter = useMemo<[number, number]>(() => {
+    if (!zones.length) return [40.7128, -74.006];
+    const avgLat = zones.reduce((sum, z) => sum + z.lat, 0) / zones.length;
+    const avgLng = zones.reduce((sum, z) => sum + z.lng, 0) / zones.length;
+    return [avgLat, avgLng];
+  }, [zones]);
+
+  const handleMarkArrived = async (bookingId: string) => {
+    try {
+      const updated = await api.arriveBooking(bookingId);
+      setBookings((current) => current.map((b) => (b.id === updated.id ? updated : b)));
+      toast({ title: 'Arrival confirmed', description: 'Slot marked as occupied.' });
+    } catch (error) {
+      toast({
+        title: 'Could not confirm arrival',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleMarkDeparted = async (bookingId: string) => {
+    try {
+      const updated = await api.departBooking(bookingId);
+      setBookings((current) => current.map((b) => (b.id === updated.id ? updated : b)));
+      toast({ title: 'Departure confirmed', description: 'Slot released.' });
+    } catch (error) {
+      toast({
+        title: 'Could not confirm departure',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -73,7 +111,7 @@ const AdminDashboard = () => {
             { icon: ParkingSquare, label: 'Total Zones', value: stats.totalZones, color: 'text-primary' },
             { icon: Layers, label: 'Total Slots', value: stats.totalSlots, color: 'text-blue-500' },
             { icon: TrendingUp, label: 'Occupancy Rate', value: `${stats.occupancyRate}%`, color: 'text-green-600' },
-            { icon: DollarSign, label: 'Total Revenue', value: `$${stats.totalRevenue.toLocaleString()}`, color: 'text-yellow-600' },
+            { icon: DollarSign, label: 'Total Revenue', value: formatPKR(stats.totalRevenue), color: 'text-yellow-600' },
           ].map((s) => (
             <Card key={s.label}>
               <CardContent className="p-5 flex items-center gap-4">
@@ -121,6 +159,13 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        <Card className="overflow-hidden">
+          <CardHeader><CardTitle className="text-base">Zones Map</CardTitle></CardHeader>
+          <CardContent className="p-0 h-[380px]">
+            <LeafletMap center={mapCenter} zoom={13} zones={zones} fitToZones className="h-full w-full" />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader><CardTitle>Recent Bookings</CardTitle></CardHeader>
           <CardContent>
@@ -133,6 +178,7 @@ const AdminDashboard = () => {
                   <TableHead>Date</TableHead>
                   <TableHead>Cost</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -142,8 +188,18 @@ const AdminDashboard = () => {
                     <TableCell>{b.zoneName}</TableCell>
                     <TableCell>{b.slotLabel}</TableCell>
                     <TableCell>{b.date}</TableCell>
-                    <TableCell>${b.totalCost}</TableCell>
+                    <TableCell>{formatPKR(b.totalCost)}</TableCell>
                     <TableCell><Badge variant="outline" className="capitalize">{b.status}</Badge></TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {b.status === 'upcoming' && (
+                          <Button size="sm" onClick={() => void handleMarkArrived(b.id)}>Mark Arrived</Button>
+                        )}
+                        {b.status === 'active' && (
+                          <Button size="sm" variant="outline" onClick={() => void handleMarkDeparted(b.id)}>Mark Left</Button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

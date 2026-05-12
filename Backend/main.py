@@ -5,15 +5,17 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.api import api_router
-from app.core.config import settings
-from app.core.logging import configure_logging
-from app.db.session import SessionLocal
-from app.models.user import User, UserRole
-from app.core.security import get_password_hash
+from routers.api import api_router
+from core.config import settings
+from core.logging import configure_logging
+from database.session import SessionLocal
+from models.user import User, UserRole
+from core.security import get_password_hash
 from sqlalchemy import select
+from services.booking_scheduler import BookingScheduler
 
 logger = logging.getLogger(__name__)
+booking_scheduler = BookingScheduler()
 
 
 def seed_admin_user() -> None:
@@ -49,10 +51,13 @@ def create_app() -> FastAPI:
     configure_logging()
     app = FastAPI(title=settings.app_name)
 
+    cors_origins = settings.cors_origins()
+    allow_all = cors_origins == ["*"]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins(),
-        allow_credentials=True,
+        allow_origins=cors_origins,
+        # CORS spec forbids "*" with credentials; disable credentials when allowing all.
+        allow_credentials=False if allow_all else True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -62,6 +67,8 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     def on_startup() -> None:
         seed_admin_user()
+        if settings.booking_scheduler_enabled:
+            booking_scheduler.start()
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:

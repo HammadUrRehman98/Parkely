@@ -3,12 +3,15 @@
 Revision ID: ${up_revision}
 Revises: ${down_revision | comma,n}
 Create Date: ${create_date}
+
 """
+
+from __future__ import annotations
 
 from alembic import op
 import sqlalchemy as sa
-
 ${imports if imports else ""}
+
 
 # revision identifiers, used by Alembic.
 revision = ${repr(up_revision)}
@@ -23,3 +26,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     ${downgrades if downgrades else "pass"}
+

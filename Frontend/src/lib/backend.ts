@@ -25,6 +25,10 @@ type BackendZone = {
   address: string;
   latitude: number;
   longitude: number;
+  entrance_latitude?: number | null;
+  entrance_longitude?: number | null;
+  exit_latitude?: number | null;
+  exit_longitude?: number | null;
   capacity: number;
   available_slots: number;
   price_per_hour: number;
@@ -49,6 +53,8 @@ type BackendBooking = {
   status: BookingStatus;
   vehicle_number: string;
   created_at: string;
+  arrival_confirmed_at?: string | null;
+  hold_until?: string | null;
 };
 
 type BackendNotification = {
@@ -77,6 +83,10 @@ export const toParkingZone = (zone: BackendZone): ParkingZone => ({
   address: zone.address,
   lat: zone.latitude,
   lng: zone.longitude,
+  entranceLat: zone.entrance_latitude ?? undefined,
+  entranceLng: zone.entrance_longitude ?? undefined,
+  exitLat: zone.exit_latitude ?? undefined,
+  exitLng: zone.exit_longitude ?? undefined,
   capacity: zone.capacity,
   availableSlots: zone.available_slots,
   pricePerHour: Number(zone.price_per_hour),
@@ -105,6 +115,8 @@ export const toBooking = (booking: BackendBooking): Booking => ({
   totalCost: Number(booking.total_cost),
   status: booking.status,
   vehicleNumber: booking.vehicle_number,
+  arrivalConfirmedAt: booking.arrival_confirmed_at ?? undefined,
+  holdUntil: booking.hold_until ?? undefined,
   createdAt: booking.created_at,
 });
 
@@ -145,6 +157,10 @@ export const api = {
     address: string;
     latitude: number;
     longitude: number;
+    entrance_latitude?: number;
+    entrance_longitude?: number;
+    exit_latitude?: number;
+    exit_longitude?: number;
     capacity: number;
     price_per_hour: number;
     color: string;
@@ -163,6 +179,10 @@ export const api = {
     address: string;
     latitude: number;
     longitude: number;
+    entrance_latitude: number;
+    entrance_longitude: number;
+    exit_latitude: number;
+    exit_longitude: number;
     capacity: number;
     price_per_hour: number;
     color: string;
@@ -222,6 +242,18 @@ export const api = {
     const data = await request<BackendBooking>(`/bookings/${bookingId}/confirm`, {
       method: 'POST',
     });
+    return toBooking(data);
+  },
+  async arriveBooking(bookingId: string): Promise<Booking> {
+    const data = await request<BackendBooking>(`/bookings/${bookingId}/arrive`, { method: 'POST' });
+    return toBooking(data);
+  },
+  async departBooking(bookingId: string): Promise<Booking> {
+    const data = await request<BackendBooking>(`/bookings/${bookingId}/depart`, { method: 'POST' });
+    return toBooking(data);
+  },
+  async claimHold(bookingId: string): Promise<Booking> {
+    const data = await request<BackendBooking>(`/bookings/${bookingId}/claim-hold`, { method: 'POST' });
     return toBooking(data);
   },
   async getNotifications(): Promise<Notification[]> {

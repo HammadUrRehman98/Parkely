@@ -29,6 +29,16 @@ const statusStyles: Record<SlotStatus, { bg: string; border: string; text: strin
     border: 'border-destructive',
     text: 'text-destructive',
   },
+  hold: {
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/40',
+    text: 'text-blue-700 dark:text-blue-400',
+  },
+  unavailable: {
+    bg: 'bg-muted',
+    border: 'border-muted-foreground/30',
+    text: 'text-muted-foreground',
+  },
 };
 
 const SlotCell = ({
@@ -149,7 +159,7 @@ export const ParkingLayout = ({
 
   const renderLegend = () => (
     <div className="flex gap-4 mb-4 justify-center">
-      {(['available', 'booked', 'occupied'] as SlotStatus[]).map((s) => (
+      {(['available', 'booked', 'occupied', 'hold', 'unavailable'] as SlotStatus[]).map((s) => (
         <div key={s} className="flex items-center gap-1.5 text-xs">
           <div className={cn('h-3 w-3 rounded border-2', statusStyles[s].bg, statusStyles[s].border)} />
           <span className="capitalize text-muted-foreground">{s}</span>

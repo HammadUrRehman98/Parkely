@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
+import { formatPKR } from '@/lib/currency';
 
 const statusColors: Record<string, string> = {
   active: 'bg-green-500/10 text-green-700 border-green-200',
@@ -52,6 +53,48 @@ const MyBookings = () => {
     }
   };
 
+  const handleArrive = async (bookingId: string) => {
+    try {
+      const updated = await api.arriveBooking(bookingId);
+      setBookings((current) => current.map((booking) => (booking.id === updated.id ? updated : booking)));
+      toast({ title: 'Arrival confirmed', description: 'Slot marked as occupied.' });
+    } catch (error) {
+      toast({
+        title: 'Could not confirm arrival',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDepart = async (bookingId: string) => {
+    try {
+      const updated = await api.departBooking(bookingId);
+      setBookings((current) => current.map((booking) => (booking.id === updated.id ? updated : booking)));
+      toast({ title: 'Departure confirmed', description: 'Slot released.' });
+    } catch (error) {
+      toast({
+        title: 'Could not confirm departure',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleClaimHold = async (bookingId: string) => {
+    try {
+      const updated = await api.claimHold(bookingId);
+      setBookings((current) => current.map((booking) => (booking.id === updated.id ? updated : booking)));
+      toast({ title: 'Hold claimed', description: 'Slot reserved again. Please confirm arrival soon.' });
+    } catch (error) {
+      toast({
+        title: 'Could not claim hold',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -83,7 +126,7 @@ const MyBookings = () => {
                       <TableCell>{b.date}</TableCell>
                       <TableCell>{b.startTime} – {b.endTime}</TableCell>
                       <TableCell>{b.duration}h</TableCell>
-                      <TableCell>${b.totalCost}</TableCell>
+                      <TableCell>{formatPKR(b.totalCost)}</TableCell>
                       <TableCell className="font-mono text-xs">{b.vehicleNumber}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={statusColors[b.status]}>
@@ -91,11 +134,28 @@ const MyBookings = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {b.status !== 'cancelled' && (
-                          <Button variant="outline" size="sm" onClick={() => void handleCancel(b.id)}>
-                            Cancel
-                          </Button>
-                        )}
+                        <div className="flex justify-end gap-2">
+                          {b.status === 'upcoming' && (
+                            <Button variant="default" size="sm" onClick={() => void handleArrive(b.id)}>
+                              I'm Parked
+                            </Button>
+                          )}
+                          {b.status === 'active' && (
+                            <Button variant="outline" size="sm" onClick={() => void handleDepart(b.id)}>
+                              Leave
+                            </Button>
+                          )}
+                          {b.status === 'upcoming' && b.holdUntil && (
+                            <Button variant="secondary" size="sm" onClick={() => void handleClaimHold(b.id)}>
+                              Claim Hold
+                            </Button>
+                          )}
+                          {b.status !== 'cancelled' && b.status !== 'completed' && (
+                            <Button variant="outline" size="sm" onClick={() => void handleCancel(b.id)}>
+                              Cancel
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
