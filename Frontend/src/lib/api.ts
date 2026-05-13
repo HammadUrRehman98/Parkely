@@ -27,8 +27,24 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const data = text ? JSON.parse(text) : null;
   if (!response.ok) {
     const detail = data?.detail;
-    const message = typeof detail === 'string' ? detail : detail?.message || response.statusText;
-    const code = typeof detail === 'object' && detail?.code ? `${detail.code}: ` : '';
+    let message = response.statusText;
+    let code = '';
+
+    if (typeof detail === 'string') {
+      message = detail;
+    } else if (Array.isArray(detail)) {
+      const validationMessages = detail
+        .map((item) => {
+          const location = Array.isArray(item?.loc) ? item.loc.join('.') : 'request';
+          return `${location}: ${item?.msg || 'invalid value'}`;
+        })
+        .filter(Boolean);
+      message = validationMessages.length > 0 ? validationMessages.join('; ') : response.statusText;
+    } else if (detail && typeof detail === 'object') {
+      message = detail.message || response.statusText;
+      code = detail.code ? `${detail.code}: ` : '';
+    }
+
     throw new Error(`${code}${message || 'Request failed'}`);
   }
 

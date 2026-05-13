@@ -70,13 +70,41 @@ const BookingFlow = () => {
 
   const handleConfirm = async () => {
     if (!date || !selectedSlotData) return;
+
+    const [startHourRaw, startMinuteRaw] = startTime.split(':');
+    const startHour = Number(startHourRaw);
+    const startMinute = Number(startMinuteRaw);
+    if (Number.isNaN(startHour) || Number.isNaN(startMinute)) {
+      toast({
+        title: 'Booking failed',
+        description: 'Please choose a valid start time.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // The backend stores bookings as a same-day date plus a time range.
+    // Reject reservations that would roll into the next day instead of sending invalid times.
+    const startDateTime = new Date(date);
+    startDateTime.setHours(startHour, startMinute, 0, 0);
+    const endDateTime = new Date(startDateTime);
+    endDateTime.setHours(endDateTime.getHours() + duration);
+    if (endDateTime.getDate() !== startDateTime.getDate()) {
+      toast({
+        title: 'Booking failed',
+        description: 'Please choose a shorter duration or an earlier start time. Overnight bookings are not supported yet.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       const booking = await api.reserveBooking({
         zone_id: zone.id,
         slot_id: selectedSlotData.id,
         date: format(date, 'yyyy-MM-dd'),
         start_time: startTime,
-        end_time: `${String(Number(startTime.split(':')[0]) + duration).padStart(2, '0')}:${startTime.split(':')[1]}`,
+        end_time: format(endDateTime, 'HH:mm'),
         vehicle_number: user?.vehicleNumber || 'N/A',
       });
       toast({
